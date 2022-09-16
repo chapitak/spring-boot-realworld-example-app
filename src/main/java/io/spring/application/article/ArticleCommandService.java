@@ -1,6 +1,7 @@
 package io.spring.application.article;
 
 import io.spring.core.article.Article;
+import io.spring.core.article.ArticleHistoryRepository;
 import io.spring.core.article.ArticleRepository;
 import io.spring.core.user.User;
 import javax.validation.Valid;
@@ -14,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 public class ArticleCommandService {
 
   private ArticleRepository articleRepository;
+  private ArticleHistoryRepository articleHistoryRepository;
 
   public Article createArticle(@Valid NewArticleParam newArticleParam, User creator) {
     Article article =
@@ -24,6 +26,7 @@ public class ArticleCommandService {
             newArticleParam.getTagList(),
             creator.getId());
     articleRepository.save(article);
+    articleHistoryRepository.save(article.toArticleHistory(0));
     return article;
   }
 
