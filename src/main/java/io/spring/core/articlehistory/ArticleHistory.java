@@ -1,5 +1,6 @@
-package io.spring.core.article;
+package io.spring.core.articlehistory;
 
+import io.spring.core.article.Tag;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -7,10 +8,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
+@Table(name = "articlehistory")
 public class ArticleHistory {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private int revType;
     private DateTime revTime;
@@ -21,6 +23,7 @@ public class ArticleHistory {
     private String description;
     private String body;
     @ElementCollection
+    @CollectionTable(name = "articlehistory_tagIds")
     private List<String> tagIds;
     private DateTime createdAt;
     private DateTime updatedAt;

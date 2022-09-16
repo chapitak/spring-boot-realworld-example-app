@@ -1,4 +1,4 @@
-package io.spring.core.article;
+package io.spring.core.articlehistory;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

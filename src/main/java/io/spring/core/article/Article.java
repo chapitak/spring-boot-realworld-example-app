@@ -6,6 +6,8 @@ import io.spring.Util;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+
+import io.spring.core.articlehistory.ArticleHistory;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
