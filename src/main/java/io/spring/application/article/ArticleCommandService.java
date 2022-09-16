@@ -36,6 +36,7 @@ public class ArticleCommandService {
         updateArticleParam.getDescription(),
         updateArticleParam.getBody());
     articleRepository.save(article);
+    articleHistoryRepository.save(article.toArticleHistory(1));
     return article;
   }
 }
