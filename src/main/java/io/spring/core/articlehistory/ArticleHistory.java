@@ -15,17 +15,22 @@ public class ArticleHistory {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private int revType;
+    @Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private DateTime revTime;
     private String userId;
     private String articleId;
     private String slug;
     private String title;
+    @Column(columnDefinition="TEXT")
     private String description;
+    @Column(columnDefinition="TEXT")
     private String body;
     @ElementCollection
     @CollectionTable(name = "articlehistory_tagIds")
     private List<String> tagIds;
+    @Column(columnDefinition="TIMESTAMP")
     private DateTime createdAt;
+    @Column(columnDefinition="TIMESTAMP")
     private DateTime updatedAt;
 
     public ArticleHistory() {
@@ -35,7 +40,6 @@ public class ArticleHistory {
     public ArticleHistory(int revType, String userId, String articleId, String slug, String title, String description
             , String body, List<Tag> tags, DateTime createdAt, DateTime updatedAt) {
         this.revType = revType;
-        this.revTime = DateTime.now();
         this.userId = userId;
         this.articleId = articleId;
         this.slug = slug;
