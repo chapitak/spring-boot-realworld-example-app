@@ -8,16 +8,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "articlehistory")
+@Table(name = "articlehistories")
 public class ArticleHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @Column(name="rev_type")
     private int revType;
-    @Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private DateTime revTime;
+    @Column(name="revised_at", columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private DateTime revisedAt;
+    @Column(name="user_id")
     private String userId;
+    @Column(name="article_id")
     private String articleId;
     private String slug;
     private String title;
@@ -26,11 +29,11 @@ public class ArticleHistory {
     @Column(columnDefinition="TEXT")
     private String body;
     @ElementCollection
-    @CollectionTable(name = "articlehistory_tagIds")
+    @CollectionTable(name="articlehistories_tag_ids")
     private List<String> tagIds;
-    @Column(columnDefinition="TIMESTAMP")
+    @Column(name="created_at",columnDefinition="TIMESTAMP")
     private DateTime createdAt;
-    @Column(columnDefinition="TIMESTAMP")
+    @Column(name="updated_at",columnDefinition="TIMESTAMP")
     private DateTime updatedAt;
 
     public ArticleHistory() {
