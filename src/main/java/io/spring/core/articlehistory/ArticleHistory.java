@@ -1,5 +1,6 @@
 package io.spring.core.articlehistory;
 
+import io.spring.application.data.ArticleHistoryData;
 import io.spring.core.article.Tag;
 import org.joda.time.DateTime;
 
@@ -59,5 +60,11 @@ public class ArticleHistory {
     public static ArticleHistory from(int revType, String id, String slug, String title, String description, String body
             , List<Tag> tags, String userId, DateTime createdAt, DateTime updatedAt) {
         return new ArticleHistory(revType, userId, id, slug, title, description, body, tags, createdAt, updatedAt);
+    }
+
+    public ArticleHistoryData toData() {
+        return new ArticleHistoryData(id, revType, revisedAt, userId, articleId, slug, title, description, body
+                , createdAt, updatedAt);
+
     }
 }

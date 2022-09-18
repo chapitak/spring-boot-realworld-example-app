@@ -1,22 +1,24 @@
 package io.spring.api;
 
+import io.spring.api.exception.ResourceNotFoundException;
 import io.spring.application.ArticleQueryService;
 import io.spring.application.Page;
 import io.spring.application.article.ArticleCommandService;
 import io.spring.application.article.NewArticleParam;
+import io.spring.application.data.ArticleData;
+import io.spring.application.data.ArticleHistoryData;
 import io.spring.core.article.Article;
 import io.spring.core.user.User;
+
 import java.util.HashMap;
+import java.util.Map;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "/articles")
@@ -56,5 +58,30 @@ public class ArticlesApi {
     return ResponseEntity.ok(
         articleQueryService.findRecentArticles(
             tag, author, favoritedBy, new Page(offset, limit), user));
+  }
+
+  @GetMapping(path = "my-article-histories")
+  public ResponseEntity getMyArticleHistories(
+          @RequestParam(value = "page", defaultValue = "0") int page,
+          @RequestParam(value = "size", defaultValue = "10") int size,
+          @AuthenticationPrincipal User user) {
+    Pageable pageable = PageRequest.of(page, size);
+      return ResponseEntity.ok(articleQueryService.findArticleHistories(user, pageable));
+  }
+
+  @GetMapping(path = "history/{id}")
+  public ResponseEntity<?> articleHistory(
+          @PathVariable("id") String id, @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(articleResponse(articleQueryService.findArticleHistory(Long.parseLong(id))
+            .get()
+            .toData()));
+  }
+
+  private Map<String, Object> articleResponse(ArticleHistoryData articleHistoryData) {
+    return new HashMap<String, Object>() {
+      {
+        put("article", articleHistoryData);
+      }
+    };
   }
 }

@@ -2,13 +2,14 @@ package io.spring.application;
 
 import static java.util.stream.Collectors.toList;
 
-import io.spring.application.data.ArticleData;
-import io.spring.application.data.ArticleDataList;
-import io.spring.application.data.ArticleFavoriteCount;
+import io.spring.application.data.*;
+import io.spring.core.articlehistory.ArticleHistory;
+import io.spring.core.articlehistory.ArticleHistoryRepository;
 import io.spring.core.user.User;
 import io.spring.infrastructure.mybatis.readservice.ArticleFavoritesReadService;
 import io.spring.infrastructure.mybatis.readservice.ArticleReadService;
 import io.spring.infrastructure.mybatis.readservice.UserRelationshipQueryService;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.joda.time.DateTime;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,6 +28,7 @@ public class ArticleQueryService {
   private ArticleReadService articleReadService;
   private UserRelationshipQueryService userRelationshipQueryService;
   private ArticleFavoritesReadService articleFavoritesReadService;
+  private ArticleHistoryRepository articleHistoryRepository;
 
   public Optional<ArticleData> findById(String id, User user) {
     ArticleData articleData = articleReadService.findById(id);
@@ -180,5 +183,22 @@ public class ArticleQueryService {
         .setFollowing(
             userRelationshipQueryService.isUserFollowing(
                 user.getId(), articleData.getProfileData().getId()));
+  }
+
+  public ArticleHistoryDataList findArticleHistories(User user, Pageable pageable) {
+//    List<ArticleHistory> articleHistories = articleHistoryRepository.findByUserIdOrderByIdDesc("34ca42d1-fe99-4036-a4cc-c571c8e75c9f", pageable);
+    List<ArticleHistory> articleHistories = articleHistoryRepository.findByUserIdOrderByIdDesc("34ca42d1-fe99-4036-a4cc-c571c8e75c9f");
+    if (articleHistories.size() == 0) {
+      return new ArticleHistoryDataList(new ArrayList<>(), 0);
+    } else {
+      int count = articleHistoryRepository.countByUserId("34ca42d1-fe99-4036-a4cc-c571c8e75c9f");
+      return new ArticleHistoryDataList(articleHistories.stream()
+              .map(ArticleHistory::toData)
+              .collect(toList()), count);
+    }
+  }
+
+  public Optional<ArticleHistory> findArticleHistory(Long id) {
+     return articleHistoryRepository.findById(id);
   }
 }
