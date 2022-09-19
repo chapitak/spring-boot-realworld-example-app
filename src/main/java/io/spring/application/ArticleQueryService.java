@@ -186,19 +186,18 @@ public class ArticleQueryService {
   }
 
   public ArticleHistoryDataList findArticleHistories(User user, Pageable pageable) {
-//    List<ArticleHistory> articleHistories = articleHistoryRepository.findByUserIdOrderByIdDesc("34ca42d1-fe99-4036-a4cc-c571c8e75c9f", pageable);
-    List<ArticleHistory> articleHistories = articleHistoryRepository.findByUserIdOrderByIdDesc("34ca42d1-fe99-4036-a4cc-c571c8e75c9f");
+    List<ArticleHistory> articleHistories = articleHistoryRepository.findByUserIdOrderByIdDesc(user.getId(), pageable);
     if (articleHistories.size() == 0) {
       return new ArticleHistoryDataList(new ArrayList<>(), 0);
     } else {
-      int count = articleHistoryRepository.countByUserId("34ca42d1-fe99-4036-a4cc-c571c8e75c9f");
+      int count = articleHistoryRepository.countByUserId(user.getId());
       return new ArticleHistoryDataList(articleHistories.stream()
               .map(ArticleHistory::toData)
               .collect(toList()), count);
     }
   }
 
-  public Optional<ArticleHistory> findArticleHistory(Long id) {
-     return articleHistoryRepository.findById(id);
+  public Optional<ArticleHistory> findArticleHistory(User user, Long id) {
+     return articleHistoryRepository.findByIdAndUserId(id, user.getId());
   }
 }

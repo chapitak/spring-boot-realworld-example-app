@@ -13,5 +13,7 @@ import java.util.Optional;
 public interface ArticleHistoryRepository extends JpaRepository<ArticleHistory, Long> {
     int countByUserId(String id);
 
-    List<ArticleHistory> findByUserIdOrderByIdDesc(String s);
+    List<ArticleHistory> findByUserIdOrderByIdDesc(String useId, Pageable page);
+
+    Optional<ArticleHistory> findByIdAndUserId(Long id, String userId);
 }
