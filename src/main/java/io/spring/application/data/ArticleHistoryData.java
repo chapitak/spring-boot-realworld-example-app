@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ArticleHistoryData implements io.spring.application.Node {
   private Long id;
-  private int revType;
+  private String revType;
   private DateTime revisedAt;
   private String userId;
   private String articleId;
