@@ -62,28 +62,4 @@ public class ArticlesApi {
             tag, author, favoritedBy, new Page(offset, limit), user));
   }
 
-  @GetMapping(path = "my-article-histories")
-  public ResponseEntity getMyArticleHistories(
-          @RequestParam(value = "offset", defaultValue = "0") int offset,
-          @RequestParam(value = "limit", defaultValue = "10") int limit,
-          @AuthenticationPrincipal User user) {
-    Pageable pageable = new ChunkRequest(offset, limit, Sort.by(Sort.Direction.DESC, "id"));
-    return ResponseEntity.ok(articleQueryService.findArticleHistories(user, pageable));
-  }
-
-  @GetMapping(path = "history/{id}")
-  public ResponseEntity<?> articleHistory(
-          @PathVariable("id") String id, @AuthenticationPrincipal User user) {
-    return ResponseEntity.ok(articleResponse(articleQueryService.findArticleHistory(user, Long.parseLong(id))
-            .get()
-            .toData()));
-  }
-
-  private Map<String, Object> articleResponse(ArticleHistoryData articleHistoryData) {
-    return new HashMap<String, Object>() {
-      {
-        put("article", articleHistoryData);
-      }
-    };
-  }
 }
