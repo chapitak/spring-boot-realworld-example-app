@@ -18,43 +18,47 @@ import java.util.HashMap;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(entityManagerFactoryRef = "MainEntityManager", transactionManagerRef = "MainTransactionManager", basePackages = "io.spring.core")
+@EnableJpaRepositories(
+    entityManagerFactoryRef = "MainEntityManager",
+    transactionManagerRef = "MainTransactionManager",
+    basePackages = "io.spring.core")
 public class MasterDBConfig {
 
-    @Autowired
-    private Environment env;
+  @Autowired private Environment env;
 
-    @Primary
-    @Bean
-    public DataSource MainDataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(env.getProperty("spring.datasource.driver-class-name"));
-        dataSource.setUrl(env.getProperty("spring.datasource.url"));
-        dataSource.setUsername(env.getProperty("spring.datasource.username"));
-        dataSource.setPassword(env.getProperty("spring.datasource.password"));
-        return dataSource;
-    }
+  @Primary
+  @Bean
+  public DataSource MainDataSource() {
+    DriverManagerDataSource dataSource = new DriverManagerDataSource();
+    dataSource.setDriverClassName(env.getProperty("spring.datasource.driver-class-name"));
+    dataSource.setUrl(env.getProperty("spring.datasource.url"));
+    dataSource.setUsername(env.getProperty("spring.datasource.username"));
+    dataSource.setPassword(env.getProperty("spring.datasource.password"));
+    return dataSource;
+  }
 
-    @Primary
-    @Bean
-    public LocalContainerEntityManagerFactoryBean MainEntityManager() {
-        LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
-        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        HashMap<String, Object> properties = new HashMap<>();
-        localContainerEntityManagerFactoryBean.setDataSource(MainDataSource());
-        localContainerEntityManagerFactoryBean.setPackagesToScan(new String[] { "io.spring.core" });
-        localContainerEntityManagerFactoryBean.setJpaVendorAdapter(vendorAdapter);
-//        properties.put("hibernate.hbm2ddl.auto", env.getProperty("spring.main.hibernate.hbm2ddl.auto"));
-        properties.put("hibernate.dialect", env.getProperty("spring.jpa.database-platform"));
-        localContainerEntityManagerFactoryBean.setJpaPropertyMap(properties);
-        return localContainerEntityManagerFactoryBean;
-    }
+  @Primary
+  @Bean
+  public LocalContainerEntityManagerFactoryBean MainEntityManager() {
+    LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean =
+        new LocalContainerEntityManagerFactoryBean();
+    HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+    HashMap<String, Object> properties = new HashMap<>();
+    localContainerEntityManagerFactoryBean.setDataSource(MainDataSource());
+    localContainerEntityManagerFactoryBean.setPackagesToScan("io.spring.core");
+    localContainerEntityManagerFactoryBean.setJpaVendorAdapter(vendorAdapter);
+    //        properties.put("hibernate.hbm2ddl.auto",
+    // env.getProperty("spring.main.hibernate.hbm2ddl.auto"));
+    properties.put("hibernate.dialect", env.getProperty("spring.jpa.database-platform"));
+    localContainerEntityManagerFactoryBean.setJpaPropertyMap(properties);
+    return localContainerEntityManagerFactoryBean;
+  }
 
-    @Primary
-    @Bean
-    public PlatformTransactionManager MainTransactionManager() {
-        JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(MainEntityManager().getObject());
-        return transactionManager;
-    }
+  @Primary
+  @Bean
+  public PlatformTransactionManager MainTransactionManager() {
+    JpaTransactionManager transactionManager = new JpaTransactionManager();
+    transactionManager.setEntityManagerFactory(MainEntityManager().getObject());
+    return transactionManager;
+  }
 }

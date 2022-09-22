@@ -1,6 +1,5 @@
 package io.spring.infrastructure;
 
-import io.spring.core.articlehistory.ArticleHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,47 +17,49 @@ import java.util.HashMap;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(entityManagerFactoryRef = "subEntityManager", transactionManagerRef = "subTransactionManager", basePackages = "io.spring.core.articlehistory")
+@EnableJpaRepositories(
+    entityManagerFactoryRef = "subEntityManager",
+    transactionManagerRef = "subTransactionManager",
+    basePackages = "io.spring.core.articlehistory")
 public class SubDBConfig {
 
-    @Autowired
-    private Environment env;
+  @Autowired private Environment env;
 
-    @Bean
-    public DataSource subDataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+  @Bean
+  public DataSource subDataSource() {
+    DriverManagerDataSource dataSource = new DriverManagerDataSource();
 
-        dataSource.setDriverClassName(env.getProperty("spring.sub.datasource.driver-class-name"));
-        dataSource.setUrl(env.getProperty("spring.sub.datasource.url"));
-        dataSource.setUsername(env.getProperty("spring.sub.datasource.username"));
-        dataSource.setPassword(env.getProperty("spring.sub.datasource.password"));
+    dataSource.setDriverClassName(env.getProperty("spring.sub.datasource.driver-class-name"));
+    dataSource.setUrl(env.getProperty("spring.sub.datasource.url"));
+    dataSource.setUsername(env.getProperty("spring.sub.datasource.username"));
+    dataSource.setPassword(env.getProperty("spring.sub.datasource.password"));
 
-        return dataSource;
-    }
+    return dataSource;
+  }
 
+  @Bean
+  public LocalContainerEntityManagerFactoryBean subEntityManager() {
+    LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean =
+        new LocalContainerEntityManagerFactoryBean();
+    HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+    HashMap<String, Object> properties = new HashMap<>();
 
-    @Bean
-    public LocalContainerEntityManagerFactoryBean subEntityManager() {
-        LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
-        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        HashMap<String, Object> properties = new HashMap<>();
+    localContainerEntityManagerFactoryBean.setDataSource(subDataSource());
+    localContainerEntityManagerFactoryBean.setPackagesToScan("io.spring.core");
+    localContainerEntityManagerFactoryBean.setJpaVendorAdapter(vendorAdapter);
 
-        localContainerEntityManagerFactoryBean.setDataSource(subDataSource());
-        localContainerEntityManagerFactoryBean.setPackagesToScan("io.spring.core");
-        localContainerEntityManagerFactoryBean.setJpaVendorAdapter(vendorAdapter);
+    properties.put("hibernate.hbm2ddl.auto", env.getProperty("spring.sub.hibernate.hbm2ddl.auto"));
+    properties.put("hibernate.dialect", env.getProperty("spring.jpa.database-platform"));
 
-        properties.put("hibernate.hbm2ddl.auto", env.getProperty("spring.sub.hibernate.hbm2ddl.auto"));
-        properties.put("hibernate.dialect", env.getProperty("spring.jpa.database-platform"));
+    localContainerEntityManagerFactoryBean.setJpaPropertyMap(properties);
 
-        localContainerEntityManagerFactoryBean.setJpaPropertyMap(properties);
+    return localContainerEntityManagerFactoryBean;
+  }
 
-        return localContainerEntityManagerFactoryBean;
-    }
-
-    @Bean
-    public PlatformTransactionManager subTransactionManager() {
-        JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(subEntityManager().getObject());
-        return transactionManager;
-    }
+  @Bean
+  public PlatformTransactionManager subTransactionManager() {
+    JpaTransactionManager transactionManager = new JpaTransactionManager();
+    transactionManager.setEntityManagerFactory(subEntityManager().getObject());
+    return transactionManager;
+  }
 }

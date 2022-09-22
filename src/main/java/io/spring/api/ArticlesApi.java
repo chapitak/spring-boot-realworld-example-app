@@ -1,26 +1,18 @@
 package io.spring.api;
 
-import io.spring.api.exception.ResourceNotFoundException;
 import io.spring.application.ArticleQueryService;
-import io.spring.application.ChunkRequest;
 import io.spring.application.Page;
 import io.spring.application.article.ArticleCommandService;
 import io.spring.application.article.NewArticleParam;
-import io.spring.application.data.ArticleData;
-import io.spring.application.data.ArticleHistoryData;
 import io.spring.core.article.Article;
 import io.spring.core.user.User;
-
-import java.util.HashMap;
-import java.util.Map;
-import javax.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping(path = "/articles")
@@ -61,5 +53,4 @@ public class ArticlesApi {
         articleQueryService.findRecentArticles(
             tag, author, favoritedBy, new Page(offset, limit), user));
   }
-
 }

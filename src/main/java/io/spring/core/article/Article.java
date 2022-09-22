@@ -1,17 +1,17 @@
 package io.spring.core.article;
 
-import static java.util.stream.Collectors.toList;
-
 import io.spring.Util;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
-
 import io.spring.core.articlehistory.ArticleHistory;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.joda.time.DateTime;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
+
+import static java.util.stream.Collectors.toList;
 
 @Getter
 @NoArgsConstructor
@@ -50,6 +50,10 @@ public class Article {
     this.updatedAt = createdAt;
   }
 
+  public static String toSlug(String title) {
+    return title.toLowerCase().replaceAll("[\\&|[\\uFE30-\\uFFA0]|\\’|\\”|\\s\\?\\,\\.]+", "-");
+  }
+
   public void update(String title, String description, String body) {
     if (!Util.isEmpty(title)) {
       this.title = title;
@@ -66,12 +70,17 @@ public class Article {
     }
   }
 
-  public static String toSlug(String title) {
-    return title.toLowerCase().replaceAll("[\\&|[\\uFE30-\\uFFA0]|\\’|\\”|\\s\\?\\,\\.]+", "-");
-  }
-
   public ArticleHistory toArticleHistory(int revType) {
-    return ArticleHistory.from(revType, this.id, this.slug, this.title, this.description, this.body, this.tags, this.userId
-            , this.createdAt, this.updatedAt);
+    return ArticleHistory.from(
+        revType,
+        this.id,
+        this.slug,
+        this.title,
+        this.description,
+        this.body,
+        this.tags,
+        this.userId,
+        this.createdAt,
+        this.updatedAt);
   }
 }
