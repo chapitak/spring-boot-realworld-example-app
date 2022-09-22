@@ -18,6 +18,7 @@ import io.spring.application.data.ArticleData;
 import io.spring.application.data.ProfileData;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
+import io.spring.core.articlehistory.ArticleHistoryRepository;
 import io.spring.core.user.User;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,6 +45,9 @@ public class ArticleApiTest extends TestWithCurrentUser {
   @MockBean private ArticleRepository articleRepository;
 
   @MockBean ArticleCommandService articleCommandService;
+
+  @MockBean
+  ArticleHistoryRepository articleHistoryRepository;
 
   @Override
   @BeforeEach
