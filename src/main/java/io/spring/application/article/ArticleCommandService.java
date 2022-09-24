@@ -2,6 +2,7 @@ package io.spring.application.article;
 
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
+import io.spring.core.article.RevType;
 import io.spring.core.articlehistory.ArticleHistoryRepository;
 import io.spring.core.user.User;
 import lombok.AllArgsConstructor;
@@ -27,7 +28,7 @@ public class ArticleCommandService {
             newArticleParam.getTagList(),
             creator.getId());
     articleRepository.save(article);
-    articleHistoryRepository.save(article.toArticleHistory(0));
+    articleHistoryRepository.save(article.toArticleHistory(RevType.생성.index()));
     return article;
   }
 
@@ -37,7 +38,7 @@ public class ArticleCommandService {
         updateArticleParam.getDescription(),
         updateArticleParam.getBody());
     articleRepository.save(article);
-    articleHistoryRepository.save(article.toArticleHistory(1));
+    articleHistoryRepository.save(article.toArticleHistory(RevType.수정.index()));
     return article;
   }
 }

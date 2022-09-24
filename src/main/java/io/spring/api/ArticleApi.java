@@ -8,6 +8,7 @@ import io.spring.application.article.UpdateArticleParam;
 import io.spring.application.data.ArticleData;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
+import io.spring.core.article.RevType;
 import io.spring.core.articlehistory.ArticleHistoryRepository;
 import io.spring.core.service.AuthorizationService;
 import io.spring.core.user.User;
@@ -70,7 +71,7 @@ public class ArticleApi {
                 throw new NoAuthorizationException();
               }
               articleRepository.remove(article);
-              articleHistoryRepository.save(article.toArticleHistory(2));
+              articleHistoryRepository.save(article.toArticleHistory(RevType.삭제.index()));
               return ResponseEntity.noContent().build();
             })
         .orElseThrow(ResourceNotFoundException::new);
