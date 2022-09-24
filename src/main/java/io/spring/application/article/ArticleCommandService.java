@@ -41,4 +41,9 @@ public class ArticleCommandService {
     articleHistoryRepository.save(article.toArticleHistory(RevType.수정.index()));
     return article;
   }
+
+  public void deleteArticle(Article article) {
+    articleRepository.remove(article);
+    articleHistoryRepository.save(article.toArticleHistory(RevType.삭제.index()));
+  }
 }

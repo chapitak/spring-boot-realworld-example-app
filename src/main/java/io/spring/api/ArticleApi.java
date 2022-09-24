@@ -8,7 +8,6 @@ import io.spring.application.article.UpdateArticleParam;
 import io.spring.application.data.ArticleData;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
-import io.spring.core.article.RevType;
 import io.spring.core.articlehistory.ArticleHistoryRepository;
 import io.spring.core.service.AuthorizationService;
 import io.spring.core.user.User;
@@ -28,7 +27,6 @@ public class ArticleApi {
   private ArticleQueryService articleQueryService;
   private ArticleRepository articleRepository;
   private ArticleCommandService articleCommandService;
-  private ArticleHistoryRepository articleHistoryRepository;
 
   @GetMapping
   public ResponseEntity<?> article(
@@ -70,8 +68,7 @@ public class ArticleApi {
               if (!AuthorizationService.canWriteArticle(user, article)) {
                 throw new NoAuthorizationException();
               }
-              articleRepository.remove(article);
-              articleHistoryRepository.save(article.toArticleHistory(RevType.삭제.index()));
+              articleCommandService.deleteArticle(article);
               return ResponseEntity.noContent().build();
             })
         .orElseThrow(ResourceNotFoundException::new);
