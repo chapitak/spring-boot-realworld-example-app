@@ -1,6 +1,5 @@
-FROM adoptopenjdk/openjdk11
-CMD ["./gradlew", "clean", "package"]
-CMD ["./gradlew", "build"]
-ARG JAR_FILE_PATH=build/libs/*.jar
-COPY ${JAR_FILE_PATH} app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+FROM gradle:7.4-jdk-alpine
+WORKDIR /app
+COPY ./ ./
+RUN gradle clean build --no-daemon
+CMD java -jar build/libs/*.jar
