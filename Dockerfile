@@ -1,5 +1,5 @@
 FROM gradle:7.4-jdk-alpine
 WORKDIR /app
 COPY ./ ./
-RUN gradle bootJar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+RUN gradle clean build --no-daemon
+CMD java -jar build/libs/*SNAPSHOT.jar
