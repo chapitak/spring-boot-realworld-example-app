@@ -10,15 +10,15 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 targetCompatibility = '11'
 
-spotless {
-    java {
-        target project.fileTree(project.rootDir) {
-            include '**/*.java'
-            exclude 'build/generated/**/*.*', 'build/generated-examples/**/*.*'
-        }
-        googleJavaFormat()
-    }
-}
+//spotless {
+//    java {
+//        target project.fileTree(project.rootDir) {
+//            include '**/*.java'
+//            exclude 'build/generated/**/*.*', 'build/generated-examples/**/*.*'
+//        }
+//        googleJavaFormat()
+//    }
+//}
 
 repositories {
     mavenCentral()
