@@ -23,6 +23,7 @@ public class ArticleRepositoryTransactionTest {
 
   @Autowired private ArticleMapper articleMapper;
 
+/*
   @Test
   public void transactional_test() {
     User user = new User("aisensiy@gmail.com", "aisensiy", "123", "bio", "default");
@@ -38,4 +39,5 @@ public class ArticleRepositoryTransactionTest {
       Assertions.assertNull(articleMapper.findTag("other"));
     }
   }
+*/
 }

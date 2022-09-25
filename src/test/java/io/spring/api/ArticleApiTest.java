@@ -20,11 +20,13 @@ import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
 import io.spring.core.articlehistory.ArticleHistoryRepository;
 import io.spring.core.user.User;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,192 +40,192 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest({ArticleApi.class})
 @Import({WebSecurityConfig.class, JacksonCustomizations.class})
 public class ArticleApiTest extends TestWithCurrentUser {
-  @Autowired private MockMvc mvc;
+    @MockBean
+    ArticleCommandService articleCommandService;
+    @MockBean
+    ArticleHistoryRepository articleHistoryRepository;
+    @Autowired
+    private MockMvc mvc;
+    @MockBean
+    private ArticleQueryService articleQueryService;
+    @MockBean
+    private ArticleRepository articleRepository;
 
-  @MockBean private ArticleQueryService articleQueryService;
+    @Override
+    @BeforeEach
+    public void setUp() throws Exception {
+        super.setUp();
+        RestAssuredMockMvc.mockMvc(mvc);
+    }
 
-  @MockBean private ArticleRepository articleRepository;
+    @Test
+    public void should_read_article_success() throws Exception {
+        String slug = "test-new-article";
+        DateTime time = new DateTime();
+        Article article =
+                new Article(
+                        "Test New Article",
+                        "Desc",
+                        "Body",
+                        Arrays.asList("java", "spring", "jpg"),
+                        user.getId(),
+                        time);
+        ArticleData articleData = TestHelper.getArticleDataFromArticleAndUser(article, user);
 
-  @MockBean ArticleCommandService articleCommandService;
+        when(articleQueryService.findBySlug(eq(slug), eq(null))).thenReturn(Optional.of(articleData));
 
-  @MockBean
-  ArticleHistoryRepository articleHistoryRepository;
+        RestAssuredMockMvc.when()
+                .get("/articles/{slug}", slug)
+                .then()
+                .statusCode(200)
+                .body("article.slug", equalTo(slug))
+                .body("article.body", equalTo(articleData.getBody()))
+                .body("article.createdAt", equalTo(ISODateTimeFormat.dateTime().withZoneUTC().print(time)));
+    }
 
-  @Override
-  @BeforeEach
-  public void setUp() throws Exception {
-    super.setUp();
-    RestAssuredMockMvc.mockMvc(mvc);
-  }
+    @Test
+    public void should_404_if_article_not_found() throws Exception {
+        when(articleQueryService.findBySlug(anyString(), any())).thenReturn(Optional.empty());
+        RestAssuredMockMvc.when().get("/articles/not-exists").then().statusCode(404);
+    }
 
-  @Test
-  public void should_read_article_success() throws Exception {
-    String slug = "test-new-article";
-    DateTime time = new DateTime();
-    Article article =
-        new Article(
-            "Test New Article",
-            "Desc",
-            "Body",
-            Arrays.asList("java", "spring", "jpg"),
-            user.getId(),
-            time);
-    ArticleData articleData = TestHelper.getArticleDataFromArticleAndUser(article, user);
+    @Test
+    public void should_update_article_content_success() throws Exception {
+        List<String> tagList = Arrays.asList("java", "spring", "jpg");
 
-    when(articleQueryService.findBySlug(eq(slug), eq(null))).thenReturn(Optional.of(articleData));
+        Article originalArticle =
+                new Article("old title", "old description", "old body", tagList, user.getId());
 
-    RestAssuredMockMvc.when()
-        .get("/articles/{slug}", slug)
-        .then()
-        .statusCode(200)
-        .body("article.slug", equalTo(slug))
-        .body("article.body", equalTo(articleData.getBody()))
-        .body("article.createdAt", equalTo(ISODateTimeFormat.dateTime().withZoneUTC().print(time)));
-  }
+        Article updatedArticle =
+                new Article("new title", "new description", "new body", tagList, user.getId());
 
-  @Test
-  public void should_404_if_article_not_found() throws Exception {
-    when(articleQueryService.findBySlug(anyString(), any())).thenReturn(Optional.empty());
-    RestAssuredMockMvc.when().get("/articles/not-exists").then().statusCode(404);
-  }
+        Map<String, Object> updateParam =
+                prepareUpdateParam(
+                        updatedArticle.getTitle(), updatedArticle.getBody(), updatedArticle.getDescription());
 
-  @Test
-  public void should_update_article_content_success() throws Exception {
-    List<String> tagList = Arrays.asList("java", "spring", "jpg");
+        ArticleData updatedArticleData =
+                TestHelper.getArticleDataFromArticleAndUser(updatedArticle, user);
 
-    Article originalArticle =
-        new Article("old title", "old description", "old body", tagList, user.getId());
+        when(articleRepository.findBySlug(eq(originalArticle.getSlug())))
+                .thenReturn(Optional.of(originalArticle));
+        when(articleCommandService.updateArticle(eq(originalArticle), any()))
+                .thenReturn(updatedArticle);
+        when(articleQueryService.findBySlug(eq(updatedArticle.getSlug()), eq(user)))
+                .thenReturn(Optional.of(updatedArticleData));
 
-    Article updatedArticle =
-        new Article("new title", "new description", "new body", tagList, user.getId());
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Token " + token)
+                .body(updateParam)
+                .when()
+                .put("/articles/{slug}", originalArticle.getSlug())
+                .then()
+                .statusCode(200)
+                .body("article.slug", equalTo(updatedArticleData.getSlug()));
+    }
 
-    Map<String, Object> updateParam =
-        prepareUpdateParam(
-            updatedArticle.getTitle(), updatedArticle.getBody(), updatedArticle.getDescription());
+    @Test
+    public void should_get_403_if_not_author_to_update_article() throws Exception {
+        String title = "new-title";
+        String body = "new body";
+        String description = "new description";
+        Map<String, Object> updateParam = prepareUpdateParam(title, body, description);
 
-    ArticleData updatedArticleData =
-        TestHelper.getArticleDataFromArticleAndUser(updatedArticle, user);
+        User anotherUser = new User("test@test.com", "test", "123123", "", "");
 
-    when(articleRepository.findBySlug(eq(originalArticle.getSlug())))
-        .thenReturn(Optional.of(originalArticle));
-    when(articleCommandService.updateArticle(eq(originalArticle), any()))
-        .thenReturn(updatedArticle);
-    when(articleQueryService.findBySlug(eq(updatedArticle.getSlug()), eq(user)))
-        .thenReturn(Optional.of(updatedArticleData));
+        Article article =
+                new Article(
+                        title, description, body, Arrays.asList("java", "spring", "jpg"), anotherUser.getId());
 
-    given()
-        .contentType("application/json")
-        .header("Authorization", "Token " + token)
-        .body(updateParam)
-        .when()
-        .put("/articles/{slug}", originalArticle.getSlug())
-        .then()
-        .statusCode(200)
-        .body("article.slug", equalTo(updatedArticleData.getSlug()));
-  }
+        DateTime time = new DateTime();
+        ArticleData articleData =
+                new ArticleData(
+                        article.getId(),
+                        article.getSlug(),
+                        article.getTitle(),
+                        article.getDescription(),
+                        article.getBody(),
+                        false,
+                        0,
+                        time,
+                        time,
+                        Arrays.asList("joda"),
+                        new ProfileData(
+                                anotherUser.getId(),
+                                anotherUser.getUsername(),
+                                anotherUser.getBio(),
+                                anotherUser.getImage(),
+                                false));
 
-  @Test
-  public void should_get_403_if_not_author_to_update_article() throws Exception {
-    String title = "new-title";
-    String body = "new body";
-    String description = "new description";
-    Map<String, Object> updateParam = prepareUpdateParam(title, body, description);
+        when(articleRepository.findBySlug(eq(article.getSlug()))).thenReturn(Optional.of(article));
+        when(articleQueryService.findBySlug(eq(article.getSlug()), eq(user)))
+                .thenReturn(Optional.of(articleData));
 
-    User anotherUser = new User("test@test.com", "test", "123123", "", "");
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Token " + token)
+                .body(updateParam)
+                .when()
+                .put("/articles/{slug}", article.getSlug())
+                .then()
+                .statusCode(403);
+    }
 
-    Article article =
-        new Article(
-            title, description, body, Arrays.asList("java", "spring", "jpg"), anotherUser.getId());
+    @Test
+    public void should_delete_article_success() throws Exception {
+        String title = "title";
+        String body = "body";
+        String description = "description";
 
-    DateTime time = new DateTime();
-    ArticleData articleData =
-        new ArticleData(
-            article.getId(),
-            article.getSlug(),
-            article.getTitle(),
-            article.getDescription(),
-            article.getBody(),
-            false,
-            0,
-            time,
-            time,
-            Arrays.asList("joda"),
-            new ProfileData(
-                anotherUser.getId(),
-                anotherUser.getUsername(),
-                anotherUser.getBio(),
-                anotherUser.getImage(),
-                false));
+        Article article =
+                new Article(title, description, body, Arrays.asList("java", "spring", "jpg"), user.getId());
+        when(articleRepository.findBySlug(eq(article.getSlug()))).thenReturn(Optional.of(article));
 
-    when(articleRepository.findBySlug(eq(article.getSlug()))).thenReturn(Optional.of(article));
-    when(articleQueryService.findBySlug(eq(article.getSlug()), eq(user)))
-        .thenReturn(Optional.of(articleData));
+        given()
+                .header("Authorization", "Token " + token)
+                .when()
+                .delete("/articles/{slug}", article.getSlug())
+                .then()
+                .statusCode(204);
 
-    given()
-        .contentType("application/json")
-        .header("Authorization", "Token " + token)
-        .body(updateParam)
-        .when()
-        .put("/articles/{slug}", article.getSlug())
-        .then()
-        .statusCode(403);
-  }
+        verify(articleCommandService).deleteArticle(eq(article));
+    }
 
-  @Test
-  public void should_delete_article_success() throws Exception {
-    String title = "title";
-    String body = "body";
-    String description = "description";
+    @Test
+    public void should_403_if_not_author_delete_article() throws Exception {
+        String title = "new-title";
+        String body = "new body";
+        String description = "new description";
 
-    Article article =
-        new Article(title, description, body, Arrays.asList("java", "spring", "jpg"), user.getId());
-    when(articleRepository.findBySlug(eq(article.getSlug()))).thenReturn(Optional.of(article));
+        User anotherUser = new User("test@test.com", "test", "123123", "", "");
 
-    given()
-        .header("Authorization", "Token " + token)
-        .when()
-        .delete("/articles/{slug}", article.getSlug())
-        .then()
-        .statusCode(204);
+        Article article =
+                new Article(
+                        title, description, body, Arrays.asList("java", "spring", "jpg"), anotherUser.getId());
 
-    verify(articleRepository).remove(eq(article));
-  }
+        when(articleRepository.findBySlug(eq(article.getSlug()))).thenReturn(Optional.of(article));
+        given()
+                .header("Authorization", "Token " + token)
+                .when()
+                .delete("/articles/{slug}", article.getSlug())
+                .then()
+                .statusCode(403);
+    }
 
-  @Test
-  public void should_403_if_not_author_delete_article() throws Exception {
-    String title = "new-title";
-    String body = "new body";
-    String description = "new description";
-
-    User anotherUser = new User("test@test.com", "test", "123123", "", "");
-
-    Article article =
-        new Article(
-            title, description, body, Arrays.asList("java", "spring", "jpg"), anotherUser.getId());
-
-    when(articleRepository.findBySlug(eq(article.getSlug()))).thenReturn(Optional.of(article));
-    given()
-        .header("Authorization", "Token " + token)
-        .when()
-        .delete("/articles/{slug}", article.getSlug())
-        .then()
-        .statusCode(403);
-  }
-
-  private HashMap<String, Object> prepareUpdateParam(
-      final String title, final String body, final String description) {
-    return new HashMap<String, Object>() {
-      {
-        put(
-            "article",
-            new HashMap<String, Object>() {
-              {
-                put("title", title);
-                put("body", body);
-                put("description", description);
-              }
-            });
-      }
-    };
-  }
+    private HashMap<String, Object> prepareUpdateParam(
+            final String title, final String body, final String description) {
+        return new HashMap<String, Object>() {
+            {
+                put(
+                        "article",
+                        new HashMap<String, Object>() {
+                            {
+                                put("title", title);
+                                put("body", body);
+                                put("description", description);
+                            }
+                        });
+            }
+        };
+    }
 }
